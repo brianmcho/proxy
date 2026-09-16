@@ -39,6 +39,8 @@
 
     /* Section Boxes */
     .section-card {
+      display: flex;
+      flex-direction: row;
       background: #fff;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
@@ -46,6 +48,29 @@
       margin-bottom: 25px;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
+
+    .section-card > div {
+      flex: 1;
+    }
+
+    @media (max-width: 1024px)
+    {
+      .section-card {
+        flex-direction: column;
+      }
+    }
+
+    .section-card-part {
+      padding: 0 20px 30px 20px;
+      position: float;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 0px;
+      font-size: 1.8rem;
+    }
+
 
     h2 {
       margin-top: 0;
@@ -94,7 +119,7 @@
     }
 
     .btn-add-card:hover {
-      background: #222;
+      background: #555;
     }
 
     /* Selected Cards Table */
@@ -163,6 +188,7 @@
       color: white;
       border: none;
       padding: 12px 20px;
+      margin-top: 20px;
       font-size: 1rem;
       font-weight: bold;
       border-radius: 6px;
@@ -170,7 +196,7 @@
     }
 
     .btn-print:hover {
-      background: #111;
+      background: #444;
     }
 
     /* Proxies Section Display */
@@ -285,34 +311,43 @@
 <body>
 
   <div class="main-container">
-    <!-- Search Bar -->
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Type to search cards..." oninput="filterCards()">
-    </div>
-
-    <!-- Search Results Section -->
     <div class="section-card">
-      <h2>Search Results:</h2>
-      <div id="searchResults" class="results-grid"></div>
+      <h1>Riftbound Proxy Generator</h1>
+
     </div>
 
-    <!-- Selected Cards Section -->
+    <!-- Search Section -->
     <div class="section-card">
-      <h2>Selected Cards</h2>
-      <table class="selected-table">
-        <thead>
-          <tr>
-            <th>Card Name</th>
-            <th>Type / Tags</th>
-            <th>Quantity</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="selectedTableBody"></tbody>
-      </table>
+      <div class="section-card-part">
+        <h2>Choose cards to proxy</h2>
 
-      <button class="btn-print" onclick="window.print()">Print Proxy Sheet</button>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Type to search cards..." oninput="filterCards()">
+        </div>
+        <div id="searchResults" class="results-grid"></div>
+      </div>
+      <div class="section-card-part">
+
+        <h2>Selected Cards</h2>
+        <table class="selected-table">
+          <thead>
+            <tr>
+              <th>Card Name</th>
+              <th>Type / Tags</th>
+              <th>Quantity</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="selectedTableBody"></tbody>
+        </table>
+
+        <button class="btn-print" onclick="window.print()">Print Proxy Sheet</button>
+      </div>
+
+
+
     </div>
+
 
     <!-- Live Printable Proxy Sheet Preview -->
     <div class="proxy-sheet-container">
@@ -416,28 +451,28 @@
     }
 
     function updateUI() {
-  const tableBody = document.getElementById('selectedTableBody');
-  const proxyGrid = document.getElementById('proxyGrid');
-  
-  tableBody.innerHTML = '';
-  proxyGrid.innerHTML = '';
+      const tableBody = document.getElementById('selectedTableBody');
+      const proxyGrid = document.getElementById('proxyGrid');
 
-  Object.keys(printDeck).forEach(id => {
-    const count = printDeck[id];
-    const card = allCards.find(c => c._id == id);
-    if (!card) return;
+      tableBody.innerHTML = '';
+      proxyGrid.innerHTML = '';
 
-    const attr = card.attributes || {};
-    const domain = getFormattedDomain(attr["Domain"]);
-    const type = attr["Card Type"] || '';
+      Object.keys(printDeck).forEach(id => {
+        const count = printDeck[id];
+        const card = allCards.find(c => c._id == id);
+        if (!card) return;
 
-    let typeTags = [];
-    if (domain) typeTags.push(domain);
-    if (type) typeTags.push(type);
+        const attr = card.attributes || {};
+        const domain = getFormattedDomain(attr["Domain"]);
+        const type = attr["Card Type"] || '';
 
-    // 1. Render Table Row
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
+        let typeTags = [];
+        if (domain) typeTags.push(domain);
+        if (type) typeTags.push(type);
+
+        // 1. Render Table Row
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
       <td><b>${card.name}</b></td>
       <td>${typeTags.join(' • ')}</td>
       <td>
@@ -451,29 +486,29 @@
         <button class="btn-remove" onclick="removeCard(${id})">Remove</button>
       </td>
     `;
-    tableBody.appendChild(tr);
+        tableBody.appendChild(tr);
 
-    // 2. Render Cards in Proxy Grid
-    for (let i = 0; i < count; i++) {
-      const energy = attr["Energy Cost"] !== undefined && attr["Energy Cost"] !== null ? attr["Energy Cost"] : null;
-      const power = attr["Power Cost"] !== undefined && attr["Power Cost"] !== null ? Number(attr["Power Cost"]) : 0;
-      const might = attr["Might"] !== undefined && attr["Might"] !== null ? attr["Might"] : null;
+        // 2. Render Cards in Proxy Grid
+        for (let i = 0; i < count; i++) {
+          const energy = attr["Energy Cost"] !== undefined && attr["Energy Cost"] !== null ? attr["Energy Cost"] : null;
+          const power = attr["Power Cost"] !== undefined && attr["Power Cost"] !== null ? Number(attr["Power Cost"]) : 0;
+          const might = attr["Might"] !== undefined && attr["Might"] !== null ? attr["Might"] : null;
 
-      // Build cost string dynamically (only show Power if > 0)
-      let costString = '';
-      if (energy !== null) {
-        costString = `E:${energy}`;
-        if (power > 0) {
-          costString += ` / P:${power}`;
-        }
-      }
+          // Build cost string dynamically (only show Power if > 0)
+          let costString = '';
+          if (energy !== null) {
+            costString = `E:${energy}`;
+            if (power > 0) {
+              costString += ` / P:${power}`;
+            }
+          }
 
-      // Check if card is a Unit AND explicitly has Might
-      const isUnit = (type && type.toLowerCase().includes('unit')) && might !== null;
+          // Check if card is a Unit AND explicitly has Might
+          const isUnit = (type && type.toLowerCase().includes('unit')) && might !== null;
 
-      const proxyCard = document.createElement('div');
-      proxyCard.className = 'proxy-card';
-      proxyCard.innerHTML = `
+          const proxyCard = document.createElement('div');
+          proxyCard.className = 'proxy-card';
+          proxyCard.innerHTML = `
         <div>
           <div class="proxy-top-bar">
             <div>
@@ -493,10 +528,10 @@
           </div>
         </div>
       `;
-      proxyGrid.appendChild(proxyCard);
+          proxyGrid.appendChild(proxyCard);
+        }
+      });
     }
-  });
-}
   </script>
 </body>
 
