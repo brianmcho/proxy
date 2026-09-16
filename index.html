@@ -416,78 +416,87 @@
     }
 
     function updateUI() {
-      const tableBody = document.getElementById('selectedTableBody');
-      const proxyGrid = document.getElementById('proxyGrid');
+  const tableBody = document.getElementById('selectedTableBody');
+  const proxyGrid = document.getElementById('proxyGrid');
+  
+  tableBody.innerHTML = '';
+  proxyGrid.innerHTML = '';
 
-      tableBody.innerHTML = '';
-      proxyGrid.innerHTML = '';
+  Object.keys(printDeck).forEach(id => {
+    const count = printDeck[id];
+    const card = allCards.find(c => c._id == id);
+    if (!card) return;
 
-      Object.keys(printDeck).forEach(id => {
-        const count = printDeck[id];
-        const card = allCards.find(c => c._id == id);
-        if (!card) return;
+    const attr = card.attributes || {};
+    const domain = getFormattedDomain(attr["Domain"]);
+    const type = attr["Card Type"] || '';
 
-        const attr = card.attributes || {};
-        const domain = getFormattedDomain(attr["Domain"]);
-        const type = attr["Card Type"] || '';
+    let typeTags = [];
+    if (domain) typeTags.push(domain);
+    if (type) typeTags.push(type);
 
-        let typeTags = [];
-        if (domain) typeTags.push(domain);
-        if (type) typeTags.push(type);
+    // 1. Render Table Row
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${card.name}</b></td>
+      <td>${typeTags.join(' • ')}</td>
+      <td>
+        <div class="qty-controls">
+          <button onclick="changeQty(${id}, -1)">-</button>
+          <span>${count}</span>
+          <button onclick="changeQty(${id}, 1)">+</button>
+        </div>
+      </td>
+      <td>
+        <button class="btn-remove" onclick="removeCard(${id})">Remove</button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
 
-        // 1. Render Table Row
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td><b>${card.name}</b></td>
-          <td>${typeTags.join(' • ')}</td>
-          <td>
-            <div class="qty-controls">
-              <button onclick="changeQty(${id}, -1)">-</button>
-              <span>${count}</span>
-              <button onclick="changeQty(${id}, 1)">+</button>
-            </div>
-          </td>
-          <td>
-            <button class="btn-remove" onclick="removeCard(${id})">Remove</button>
-          </td>
-        `;
-        tableBody.appendChild(tr);
+    // 2. Render Cards in Proxy Grid
+    for (let i = 0; i < count; i++) {
+      const energy = attr["Energy Cost"] !== undefined && attr["Energy Cost"] !== null ? attr["Energy Cost"] : null;
+      const power = attr["Power Cost"] !== undefined && attr["Power Cost"] !== null ? Number(attr["Power Cost"]) : 0;
+      const might = attr["Might"] !== undefined && attr["Might"] !== null ? attr["Might"] : null;
 
-        // 2. Render Cards in Proxy Grid
-        for (let i = 0; i < count; i++) {
-          const energy = attr["Energy Cost"] !== undefined && attr["Energy Cost"] !== null ? attr["Energy Cost"] : '-';
-          const power = attr["Power Cost"] !== undefined && attr["Power Cost"] !== null ? attr["Power Cost"] : '-';
-          const might = attr["Might"] !== undefined ? attr["Might"] : null;
-
-          // Only display Might in top right if might is not null/undefined
-          const showMight = might !== null && might !== undefined;
-
-          const proxyCard = document.createElement('div');
-          proxyCard.className = 'proxy-card';
-          proxyCard.innerHTML = `
-            <div>
-              <div class="proxy-top-bar">
-                <div>
-                  <div class="proxy-header-text">E:${energy} / P:${power}</div>
-                  ${domain ? `<div class="proxy-domain">${domain}</div>` : ''}
-                </div>
-                ${showMight ? `<div class="proxy-header-text">Might: ${might}</div>` : ''}
-              </div>
-
-              <div class="proxy-middle-section">
-                <div class="proxy-type-tag">${type}</div>
-                <div class="proxy-title">${card.name}</div>
-              </div>
-
-              <div class="proxy-body">
-                ${attr["Description"] || ''}
-              </div>
-            </div>
-          `;
-          proxyGrid.appendChild(proxyCard);
+      // Build cost string dynamically (only show Power if > 0)
+      let costString = '';
+      if (energy !== null) {
+        costString = `E:${energy}`;
+        if (power > 0) {
+          costString += ` / P:${power}`;
         }
-      });
+      }
+
+      // Check if card is a Unit AND explicitly has Might
+      const isUnit = (type && type.toLowerCase().includes('unit')) && might !== null;
+
+      const proxyCard = document.createElement('div');
+      proxyCard.className = 'proxy-card';
+      proxyCard.innerHTML = `
+        <div>
+          <div class="proxy-top-bar">
+            <div>
+              <div class="proxy-header-text">${costString}</div>
+              ${domain ? `<div class="proxy-domain">${domain}</div>` : ''}
+            </div>
+            ${isUnit && might !== null ? `<div class="proxy-header-text">Might: ${might}</div>` : ''}
+          </div>
+
+          <div class="proxy-middle-section">
+            <div class="proxy-type-tag">${type}</div>
+            <div class="proxy-title">${card.name}</div>
+          </div>
+
+          <div class="proxy-body">
+            ${attr["Description"] || ''}
+          </div>
+        </div>
+      `;
+      proxyGrid.appendChild(proxyCard);
     }
+  });
+}
   </script>
 </body>
 
