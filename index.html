@@ -40,7 +40,7 @@
     /* Section Boxes */
     .section-card {
       display: flex;
-      gap:20px;
+      gap: 20px;
       flex-direction: row;
       background: #fff;
       border: 1px solid #e2e8f0;
@@ -50,12 +50,11 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     }
 
-    .section-card > div {
+    .section-card>div {
       flex: 1;
     }
 
-    @media (max-width: 1024px)
-    {
+    @media (max-width: 1024px) {
       .section-card {
         flex-direction: column;
       }
@@ -273,12 +272,42 @@
 
     .proxy-body {
       font-size: 8.5pt;
+      text-align: right;
       line-height: 1.25;
       text-align: left;
     }
 
+    .proxy-bottom {
+      margin-top: auto;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .might-override {
+      font-size: 14pt;
+      font-weight: bold;
+      border: 1px dashed #999;
+      background: #fdfdfd;
+      padding: 0 4px;
+      border-radius: 3px;
+      min-width: 24px;
+      display: inline-block;
+      outline: none;
+    }
+
     /* Print Media Query */
+
     @media print {
+      .might-override {
+        border: none !important;
+        background: transparent !important;
+      }
+
+      /* If left empty in print, hide entirely */
+      .might-override:empty {
+        display: none !important;
+      }
+
       body {
         background: white;
         padding: 0;
@@ -510,7 +539,6 @@
           const proxyCard = document.createElement('div');
           proxyCard.className = 'proxy-card';
           proxyCard.innerHTML = `
-        <div>
           <div class="proxy-top-bar">
             <div>
               <div class="proxy-header-text">${costString}</div>
@@ -527,7 +555,11 @@
           <div class="proxy-body">
             ${attr["Description"] || ''}
           </div>
-        </div>
+          <div class="proxy-bottom">
+            <div class="proxy-header-text">
+              <span class="might-override" contenteditable="true" placeholder=""> </span>
+            </div>
+          </div>
       `;
           proxyGrid.appendChild(proxyCard);
         }
